@@ -16,21 +16,44 @@
 
 variable "service_account" {
   description = "The service account for exporting GSuite data. Needs domain-wide delegation and correct access scopes."
-  type        = string
+  type = string
 }
 
 variable "project_id" {
   description = "The project to export GSuite data to."
-  type        = string
+  type = string
 }
 
 variable "gsuite_admin" {
   description = "The GSuite Admin to delgate requests as"
-  type        = string
+  type = string
 }
 
 variable "applications" {
-    description = "Application logs that should be imported into stackdriver"
-    default = ["admin", "calendar", "drive", "token", "saml", "gplus", "jamboard", "user_accounts", "groups_enterprise", "login", "mobile", "groups", "chat", "rules", "meet", "access_transparency", "gcp"] 
-    type = "list"
+  description = "Application logs that should be imported into stackdriver"
+  default = [
+    "admin",
+    "calendar",
+    "drive",
+    "token",
+    "saml",
+    "gplus",
+    "jamboard",
+    "user_accounts",
+    "groups_enterprise",
+    "login",
+    "mobile",
+    "groups",
+    "chat",
+    "rules",
+    "meet",
+    "access_transparency",
+    "gcp"]
+  type = "list"
+}
+
+variable "data_retention" {
+  description = "# of days to retain G Suite audit data"
+  default = 365
+  type = number
 }

@@ -28,3 +28,8 @@ output "bigquery" {
   description = "Log Export: BigQuery destination submodule"
   value       = module.bigquery
 }
+
+output "gsuite_vpc" {
+  description = "VPC Network Created"
+  value = module.gsuite_vpc
+}

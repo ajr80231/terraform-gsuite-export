@@ -16,39 +16,52 @@
 
 
 resource "random_string" "suffix" {
-  length  = 4
+  length = 4
   special = false
-  upper   = false
+  upper = false
+}
+
+module "gsuite_vpc" {
+  source = "terraform-google-modules/network/google"
+  version = "~> 2.0.0"
+  project_id = var.project_id
+  network_name = "gsuite-vpc-network-${random_string.suffix.result}"
+  auto_create_subnetworks = true
+  subnets = []
 }
 
 module "gsuite_export" {
-  source  = "terraform-google-modules/gsuite-export/google"
+  source = "terraform-google-modules/gsuite-export/google"
   version = "1.0.0"
 
-  project_id          = var.project_id
-  admin_user          = var.gsuite_admin
-  api                 = "reports_v1"
-  applications        = var.applications
-  machine_name        = "gsuite-exporter-vm-${random_string.suffix.result}"
-  service_account     = var.service_account
+  project_id = var.project_id
+  admin_user = var.gsuite_admin
+  api = "reports_v1"
+  applications = var.applications
+  machine_name = "gsuite-exporter-vm-${random_string.suffix.result}"
+  machine_network = module.gsuite_vpc.network_name
+  service_account = var.service_account
 }
 
 module "gsuite_log_export" {
-  source                 = "terraform-google-modules/log-export/google"
-  version                = "3.2.0"
-  destination_uri        = module.bigquery.destination_uri
-  filter                 = module.gsuite_export.filter
-  log_sink_name          = "gsuite_export_bq"
-  parent_resource_id     = var.project_id
-  parent_resource_type   = "project"
+  source = "terraform-google-modules/log-export/google"
+  version = "3.2.0"
+  destination_uri = module.bigquery.destination_uri
+  filter = module.gsuite_export.filter
+  log_sink_name = "gsuite_export_bq"
+  parent_resource_id = var.project_id
+  parent_resource_type = "project"
   unique_writer_identity = false
 }
 
 module "bigquery" {
-  source                   = "terraform-google-modules/log-export/google//modules/bigquery"
-  version                  = "3.2.0"
-  project_id               = var.project_id
-  dataset_name             = "gsuite_audit_${random_string.suffix.result}"
+  source = "terraform-google-modules/log-export/google//modules/bigquery"
+  version = "3.2.0"
+  project_id = var.project_id
+  dataset_name = "gsuite_audit_${random_string.suffix.result}"
+  description = "G Suite Reports API Logs"
   log_sink_writer_identity = module.gsuite_log_export.writer_identity
+  delete_contents_on_destroy = true
+  default_table_expiration_ms = (var.data_retention * 86400000)
 }
 
